@@ -1,9 +1,27 @@
 import { Router } from "express";
+import {
+  getAllLoans,
+  getLoanById,
+  createLoan,
+  updateLoan,
+  deleteLoan
+} from "../controllers/loans.controller.js";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.json({ message: "📚 Loans API - Coming soon!" });
-});
+// GET all loans (with filtering and pagination)
+router.get("/", getAllLoans);
+
+// GET loan by ID
+router.get("/:id", getLoanById);
+
+// POST create new loan
+router.post("/", createLoan);
+
+// PUT update loan
+router.put("/:id", updateLoan);
+
+// DELETE loan
+router.delete("/:id", deleteLoan);
 
 export default router;
