@@ -52,6 +52,11 @@ export default function Home() {
         </main>
         <footer className="text-xs text-center py-6 text-gray-500 dark:text-gray-500 border-t border-gray-200 dark:border-gray-800">
           © {new Date().getFullYear()} Library Management. All rights reserved.
+          <br />
+          {/*made by yashvanth s */}
+          Made by <a href="https://github.com/YashvanthSankar" target="_blank" rel="noopener noreferrer">
+            Yashvanth S
+          </a>
         </footer>
       </div>
   );
