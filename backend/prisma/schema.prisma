@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -18,13 +17,12 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  image     String?
-  role      String   @default("borrower")
+  role      String   @default("borrower") // "librarian" or "borrower"
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  loans     Loan[]
-  
+  loans Loan[]
+  fines Fine[]
+
   @@map("users")
 }
 
@@ -34,30 +32,42 @@ model Book {
   author          String
   isbn            String?  @unique
   category        String?
-  description     String?
   totalCopies     Int      @default(1)
   availableCopies Int      @default(1)
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
 
-  loans           Loan[]
-  
+  loans Loan[]
+
   @@map("books")
 }
 
 model Loan {
-  id          String     @id @default(cuid())
-  userId      String
-  bookId      String
-  loanedAt    DateTime   @default(now())
-  dueAt       DateTime
-  returnedAt  DateTime?
-  status      String     @default("active")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id         String    @id @default(cuid())
+  userId     String
+  bookId     String
+  loanedAt   DateTime  @default(now())
+  dueAt      DateTime
+  returnedAt DateTime?
+  status     String    @default("active") // "active", "returned", "overdue"
 
-  user        User       @relation(fields: [userId], references: [id])
-  book        Book       @relation(fields: [bookId], references: [id])
-  
+  user  User   @relation(fields: [userId], references: [id])
+  book  Book   @relation(fields: [bookId], references: [id])
+  fines Fine[]
+
   @@map("loans")
+}
+
+model Fine {
+  id        String   @id @default(cuid())
+  userId    String
+  loanId    String
+  amount    Float
+  status    String   @default("unpaid") // "unpaid", "paid"
+  reason    String   @default("overdue")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  loan Loan @relation(fields: [loanId], references: [id])
+
+  @@map("fines")
 }

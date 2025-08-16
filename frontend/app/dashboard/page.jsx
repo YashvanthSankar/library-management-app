@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,7 +14,7 @@ import {
 	DropdownMenuTrigger,
 	DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Settings } from "lucide-react";
+import { LogOut, User, Settings, Book, BookOpen, Users, FileText } from "lucide-react";
 
 // Re‑usable small stat card
 function Stat({ label, value, note }) {
@@ -276,6 +277,38 @@ export default function UnifiedDashboard() {
 				</div>
 				
 			</header>
+			
+			{/* Navigation */}
+			<nav className="flex gap-2 border-b border-gray-200 dark:border-gray-800 pb-4">
+				<Link href="/dashboard">
+					<Button variant="ghost" size="sm" className="gap-2">
+						<FileText className="h-4 w-4" />
+						Dashboard
+					</Button>
+				</Link>
+				<Link href="/dashboard/books">
+					<Button variant="ghost" size="sm" className="gap-2">
+						<Book className="h-4 w-4" />
+						Books
+					</Button>
+				</Link>
+				{isLibrarian && (
+					<Link href="/dashboard/loan-requests">
+						<Button variant="ghost" size="sm" className="gap-2">
+							<Users className="h-4 w-4" />
+							Loan Requests
+						</Button>
+					</Link>
+				)}
+				{!isLibrarian && (
+					<Link href="/dashboard/loan-requests">
+						<Button variant="ghost" size="sm" className="gap-2">
+							<Users className="h-4 w-4" />
+							My Loans
+						</Button>
+					</Link>
+				)}
+			</nav>
 			
 			{isLibrarian ? <LibrarianView /> : <BorrowerView />}
 		</div>
