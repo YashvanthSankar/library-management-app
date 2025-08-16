@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import { Github, Mail } from "lucide-react";
+import { Github, } from "lucide-react";
 
 export default function Login() {
   const [role, setRole] = useState("borrower"); // borrower | librarian
