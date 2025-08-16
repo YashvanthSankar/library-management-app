@@ -44,10 +44,11 @@ export default function Login() {
   async function handleSocialLogin(provider) {
     setLoading(true);
     try {
+      // Store the selected role in localStorage before signing in
+      localStorage.setItem('selectedRole', role);
+      
       await signIn(provider, { 
-        callbackUrl: "/dashboard",
-        // Pass role as part of the callback
-        role: role
+        callbackUrl: `/dashboard`
       });
     } catch (error) {
       console.error("Login error:", error);

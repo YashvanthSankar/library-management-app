@@ -14,14 +14,17 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role || "borrower";
+    async jwt({ token, user, account }) {
+      if (account && account.provider) {
+        if (typeof window !== "undefined") {
+          token.role = localStorage.getItem("role") || "borrower";
+        }
       }
       return token;
     },
     async session({ session, token }) {
       session.user.role = token.role;
+      session.user.id = token.sub;
       return session;
     },
   },

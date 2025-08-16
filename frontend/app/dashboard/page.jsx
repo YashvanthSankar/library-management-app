@@ -173,21 +173,24 @@ function BorrowerView() {
 export default function UnifiedDashboard() {
 	const { data: session, status } = useSession();
 	const router = useRouter();
-	const [role, setRole] = useState("borrower");
+	const [selectedRole, setSelectedRole] = useState(null);
+
+	// Get the selected role from localStorage on component mount
+	useEffect(() => {
+		const storedRole = localStorage.getItem('selectedRole');
+		setSelectedRole(storedRole || 'borrower'); // Default to borrower if no role stored
+	}, []);
 
 	// Redirect to login if not authenticated
 	useEffect(() => {
 		if (status === "loading") return;
 		if (!session) {
 			router.push("/login");
-		} else {
-			// Set role from session when available
-			setRole(session.user.role || "borrower");
 		}
 	}, [session, status, router]);
 
 	// Show loading while checking auth
-	if (status === "loading") {
+	if (status === "loading" || selectedRole === null) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
 				<div className="text-sm text-gray-500">Loading...</div>
@@ -201,6 +204,7 @@ export default function UnifiedDashboard() {
 	}
 
 	const user = session.user;
+	const isLibrarian = selectedRole === "librarian";
 
 	// User Profile Component
 	function UserProfile() {
@@ -234,19 +238,10 @@ export default function UnifiedDashboard() {
 						</p>
 						<div className="flex items-center gap-1 mt-1">
 							<div className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
-								{role === "librarian" ? "📚 Librarian" : "📖 Borrower"}
+								{isLibrarian ? "📚 Librarian" : "📖 Borrower"}
 							</div>
 						</div>
 					</div>
-					<DropdownMenuSeparator />
-					{/* <DropdownMenuItem className="cursor-pointer">
-						<User className="mr-2 h-4 w-4" />
-						<span>Profile</span>
-					</DropdownMenuItem>
-					<DropdownMenuItem className="cursor-pointer">
-						<Settings className="mr-2 h-4 w-4" />
-						<span>Settings</span>
-					</DropdownMenuItem> */}
 					<DropdownMenuSeparator />
 					<DropdownMenuItem 
 						className="cursor-pointer text-red-600 dark:text-red-400"
@@ -268,9 +263,11 @@ export default function UnifiedDashboard() {
 						<h1 className="text-2xl font-bold tracking-tight">
 							Welcome back, {user.name?.split(" ")[0] || "User"}!
 						</h1>
-						<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-							Role: <span className="font-medium capitalize">{role}</span>
-						</p>
+						<div className="flex items-center gap-2 mt-2">
+							<span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+								{isLibrarian ? "📚 Librarian" : "📖 Borrower"}
+							</span>
+						</div>
 					</div>
 					<div className="flex items-center gap-3">
 						<ThemeToggle />
@@ -278,29 +275,9 @@ export default function UnifiedDashboard() {
 					</div>
 				</div>
 				
-				{/* Keep role toggle for testing - remove in production */}
-				<div className="flex items-center gap-2">
-					{/* <span className="text-xs text-gray-500">Test Role:</span> */}
-					<Button
-						size="sm"
-						variant={role === 'borrower' ? 'default' : 'outline'}
-						className={role === 'borrower' ? 'bg-black dark:bg-white text-white dark:text-black' : ''}
-						onClick={() => setRole('borrower')}
-					>
-						Borrower
-					</Button>
-					<Button
-						size="sm"
-						variant={role === 'librarian' ? 'default' : 'outline'}
-						className={role === 'librarian' ? 'bg-black dark:bg-white text-white dark:text-black' : ''}
-						onClick={() => setRole('librarian')}
-					>
-						Librarian
-					</Button>
-				</div>
 			</header>
 			
-			{role === 'librarian' ? <LibrarianView /> : <BorrowerView />}
+			{isLibrarian ? <LibrarianView /> : <BorrowerView />}
 		</div>
 	);
 }
