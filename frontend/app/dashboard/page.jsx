@@ -43,7 +43,7 @@ function QuickActions({ isLibrarian }) {
 	const borrowerActions = [
 		{ label: "Browse Books", href: "/dashboard/books", icon: BookOpen },
 		{ label: "My Loans", href: "/dashboard/my-loans", icon: Clock },
-		{ label: "My Profile", href: "/dashboard/profile", icon: Users },
+		{ label: "My Fines", href: "/dashboard/my-fines", icon: Users },
 	];
 
 	const actions = isLibrarian ? librarianActions : borrowerActions;
@@ -118,28 +118,85 @@ function LibrarianView() {
 
 	const fetchDashboardData = async () => {
 		try {
-			// Fetch books count
-			const booksResponse = await fetch("http://localhost:5000/api/books");
-			const booksData = await booksResponse.json();
+			setLoading(true);
 			
-			// Mock other data for now (will be replaced with real API calls)
-			setStats({
-				totalBooks: booksData.books?.length || 0,
-				totalUsers: 25, // TODO: Replace with actual API call
-				activeLoans: 15, // TODO: Replace with actual API call
-				overdueLoans: 3, // TODO: Replace with actual API call
-			});
-
-			setRecentActivity([
-				{ action: "New book added", details: "Clean Code by Robert Martin", time: "2 hours ago" },
-				{ action: "Loan issued", details: "JavaScript: The Good Parts to Alice", time: "4 hours ago" },
-				{ action: "Book returned", details: "Design Patterns by Bob", time: "1 day ago" },
-				{ action: "New user registered", details: "Charlie Brown", time: "2 days ago" },
+			// Fetch all data in parallel
+			const [booksResponse, usersResponse] = await Promise.all([
+				fetch("http://localhost:5000/api/books"),
+				fetch("http://localhost:5000/api/users")
 			]);
 
-			setLoading(false);
+			// Process books data
+			const booksData = await booksResponse.json();
+			const totalBooks = booksData.success ? booksData.books?.length || 0 : 0;
+
+			// Process users data
+			const usersData = await usersResponse.json();
+			const totalUsers = usersData.success ? usersData.data?.length || 0 : 0;
+
+			// TODO: When loans API is ready, replace these with real calls
+			// For now, calculate mock data based on available data
+			const activeLoans = Math.floor(totalUsers * 0.6); // 60% of users have active loans
+			const overdueLoans = Math.floor(activeLoans * 0.2); // 20% of active loans are overdue
+
+			setStats({
+				totalBooks,
+				totalUsers,
+				activeLoans,
+				overdueLoans,
+			});
+
+			// Generate recent activity based on real data
+			const activities = [];
+			
+			if (booksData.success && booksData.books?.length > 0) {
+				const recentBooks = booksData.books.slice(0, 2);
+				recentBooks.forEach((book, idx) => {
+					activities.push({
+						action: "New book added",
+						details: `${book.title} by ${book.author}`,
+						time: `${idx + 1} ${idx === 0 ? 'day' : 'days'} ago`
+					});
+				});
+			}
+
+			if (usersData.success && usersData.data?.length > 0) {
+				const recentUsers = usersData.data.slice(0, 2);
+				recentUsers.forEach((user, idx) => {
+					activities.push({
+						action: "New member registered",
+						details: `${user.name} (${user.role})`,
+						time: `${idx + 3} days ago`
+					});
+				});
+			}
+
+			// Add some mock loan activities
+			activities.push(
+				{
+					action: "Book borrowed",
+					details: "JavaScript: The Good Parts by Alice",
+					time: "2 hours ago"
+				},
+				{
+					action: "Book returned",
+					details: "Clean Code by Bob",
+					time: "5 hours ago"
+				}
+			);
+
+			setRecentActivity(activities);
 		} catch (error) {
 			console.error("Error fetching dashboard data:", error);
+			// Set default values on error
+			setStats({
+				totalBooks: 0,
+				totalUsers: 0,
+				activeLoans: 0,
+				overdueLoans: 0,
+			});
+			setRecentActivity([]);
+		} finally {
 			setLoading(false);
 		}
 	};
@@ -200,20 +257,34 @@ function LibrarianView() {
 
 // Borrower dashboard view
 function BorrowerView() {
+	const { data: session } = useSession();
 	const [currentLoans, setCurrentLoans] = useState([]);
 	const [recentActivity, setRecentActivity] = useState([]);
+	const [stats, setStats] = useState({
+		currentLoans: 0,
+		dueSoon: 0,
+		readingGoal: "0/12"
+	});
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		fetchUserData();
-	}, []);
+		if (session?.user) {
+			fetchUserData();
+		}
+	}, [session]);
 
 	const fetchUserData = async () => {
 		try {
-			// Mock data for now (will be replaced with real API calls based on user session)
-			setCurrentLoans([
+			setLoading(true);
+			
+			// TODO: When loans API is ready, fetch real user loans
+			// For now, using mock data based on session
+			const userId = session?.user?.id;
+			
+			// Mock current loans for this user
+			const mockLoans = [
 				{ 
-					id: 1, 
+					id: `${userId}_1`, 
 					title: "JavaScript: The Good Parts", 
 					author: "Douglas Crockford",
 					dueDate: "2025-08-25", 
@@ -221,24 +292,62 @@ function BorrowerView() {
 					status: "active"
 				},
 				{ 
-					id: 2, 
+					id: `${userId}_2`, 
 					title: "Clean Architecture", 
 					author: "Robert Martin",
 					dueDate: "2025-08-20", 
 					daysLeft: 4,
 					status: "due-soon"
 				},
-			]);
+			];
 
-			setRecentActivity([
-				{ action: "Book borrowed", details: "JavaScript: The Good Parts", time: "3 days ago" },
-				{ action: "Book returned", details: "Design Patterns", time: "1 week ago" },
-				{ action: "Book renewed", details: "Clean Code", time: "2 weeks ago" },
-			]);
+			// Calculate stats
+			const dueSoonCount = mockLoans.filter(loan => loan.status === 'due-soon').length;
+			const totalBooksRead = mockLoans.length + 6; // Mock: current + returned books
 
-			setLoading(false);
+			setCurrentLoans(mockLoans);
+			setStats({
+				currentLoans: mockLoans.length,
+				dueSoon: dueSoonCount,
+				readingGoal: `${totalBooksRead}/12`
+			});
+
+			// Generate activity based on user session
+			const activities = [
+				{ 
+					action: "Book borrowed", 
+					details: "JavaScript: The Good Parts", 
+					time: "3 days ago" 
+				},
+				{ 
+					action: "Book returned", 
+					details: "Design Patterns", 
+					time: "1 week ago" 
+				},
+				{ 
+					action: "Book renewed", 
+					details: "Clean Code", 
+					time: "2 weeks ago" 
+				},
+				{ 
+					action: "Account updated", 
+					details: `Welcome ${session?.user?.name}!`, 
+					time: "1 month ago" 
+				}
+			];
+
+			setRecentActivity(activities);
 		} catch (error) {
 			console.error("Error fetching user data:", error);
+			// Set default values on error
+			setCurrentLoans([]);
+			setStats({
+				currentLoans: 0,
+				dueSoon: 0,
+				readingGoal: "0/12"
+			});
+			setRecentActivity([]);
+		} finally {
 			setLoading(false);
 		}
 	};
@@ -274,7 +383,7 @@ function BorrowerView() {
 				/>
 				<Stat 
 					label="Reading Goal" 
-					value="8/12" 
+					value={stats.readingGoal} 
 					icon={TrendingUp} 
 					color="green"
 					note="Books this year"

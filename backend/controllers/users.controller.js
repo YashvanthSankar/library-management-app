@@ -118,10 +118,55 @@ export const updateMemberStatus = async (req, res) => {
       });
     }
 
-    console.error("Error updating member status:", error);
+      console.error("Error updating member status:", error);
     res.status(500).json({
       success: false,
       message: "Failed to update member status",
+      error: error.message,
+    });
+  }
+};
+
+// POST /api/users - Create or get user (for session-based user creation)
+export const createOrGetUser = async (req, res) => {
+  try {
+    const { id, name, email } = req.body;
+
+    if (!id || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID and email are required",
+      });
+    }
+
+    // Check if user already exists
+    let user = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      // Create new user
+      user = await prisma.user.create({
+        data: {
+          id,
+          name: name || "Anonymous User",
+          email,
+          role: "borrower",
+          status: "active",
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      message: user.createdAt ? "User created successfully" : "User found",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error creating/getting user:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create or get user",
       error: error.message,
     });
   }

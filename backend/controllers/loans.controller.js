@@ -3,10 +3,33 @@ import { prisma } from "../utils/database.js";
 // GET ALL LOANS
 export const getAllLoans = async (req, res) => {
   try {
-    const loans = await prisma.loan.findMany();
+    const loans = await prisma.loan.findMany({
+      include: {
+        book: { select: { id: true, title: true, author: true } },
+        user: { select: { id: true, name: true, email: true } },
+      },
+    });
     res.json(loans);
   } catch (error) {
     console.error("Error fetching loans:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// GET LOANS FOR SPECIFIC USER
+export const getUserLoans = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const loans = await prisma.loan.findMany({
+      where: { userId },
+      include: {
+        book: { select: { id: true, title: true, author: true } },
+      },
+      orderBy: { loanedAt: 'desc' },
+    });
+    res.json(loans);
+  } catch (error) {
+    console.error("Error fetching user loans:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -31,20 +54,110 @@ export const getLoanById = async (req, res) => {
 // CREATE NEW LOAN
 export const createLoan = async (req, res) => {
   try {
+    const { bookId, userId, dueDate } = req.body;
+    
+    console.log('Creating loan with data:', { bookId, userId, dueDate });
+    
+    // Validate required fields
+    if (!bookId || !userId) {
+      console.log('Missing required fields:', { bookId: !!bookId, userId: !!userId });
+      return res.status(400).json({ error: "bookId and userId are required" });
+    }
 
-    const validatedData = loanCreateSchema.parse(req.body);
-    const { bookId, userId, dueDate } = validatedData;
-    const loan = await prisma.loan.create({
-      data: {
-        book: { connect: { id: bookId } },
-        user: { connect: { id: userId } },
-        dueDate,
-      },
+    // Check if book exists and has available copies
+    const book = await prisma.book.findUnique({
+      where: { id: bookId }
     });
-    res.status(201).json(loan);
+
+    console.log('Found book:', book ? { id: book.id, title: book.title, availableCopies: book.availableCopies } : 'Not found');
+
+    if (!book) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+
+    if (book.availableCopies <= 0) {
+      return res.status(400).json({ error: "No available copies of this book" });
+    }
+
+    // Check if user exists, create if not
+    let user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      // Auto-create user for session-based authentication
+      user = await prisma.user.create({
+        data: {
+          id: userId,
+          name: "Session User",
+          email: `user_${userId}@temp.com`,
+          role: "borrower",
+          status: "active",
+        }
+      });
+      console.log('Created new user:', { id: user.id, name: user.name });
+    } else {
+      console.log('Found user:', user ? { id: user.id, name: user.name } : 'Not found');
+    }
+
+    // Check if user already has an active loan for this book
+    const existingLoan = await prisma.loan.findFirst({
+      where: {
+        userId,
+        bookId,
+        status: "active"
+      }
+    });
+
+    if (existingLoan) {
+      console.log('User already has active loan for this book:', existingLoan.id);
+      return res.status(400).json({ error: "You already have an active loan for this book" });
+    }
+
+    // Set default due date to 14 days from now if not provided
+    const loanDueDate = dueDate ? new Date(dueDate) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+    console.log('Creating loan with due date:', loanDueDate);
+
+    // Create loan and update book availability in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the loan
+      const loan = await tx.loan.create({
+        data: {
+          bookId,
+          userId,
+          dueAt: loanDueDate,
+          status: "active",
+        },
+        include: {
+          book: { select: { id: true, title: true, author: true } },
+          user: { select: { id: true, name: true, email: true } },
+        },
+      });
+
+      // Update book available copies
+      await tx.book.update({
+        where: { id: bookId },
+        data: {
+          availableCopies: {
+            decrement: 1
+          }
+        }
+      });
+
+      return loan;
+    });
+
+    console.log('Loan created successfully:', result.id);
+
+    res.status(201).json({
+      success: true,
+      message: "Book borrowed successfully",
+      loan: result
+    });
   } catch (error) {
     console.error("Error creating loan:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 };
 

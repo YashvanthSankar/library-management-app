@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getAllLoans,
   getLoanById,
+  getUserLoans,
   createLoan,
   updateLoan,
   deleteLoan
@@ -11,6 +12,9 @@ const router = Router();
 
 // GET all loans (with filtering and pagination)
 router.get("/", getAllLoans);
+
+// GET loans for specific user
+router.get("/user/:userId", getUserLoans);
 
 // GET loan by ID
 router.get("/:id", getLoanById);

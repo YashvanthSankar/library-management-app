@@ -156,8 +156,59 @@ export default function BooksPage() {
 
   // Borrow book (Borrower)
   const handleBorrowBook = async (bookId) => {
-    // This will connect to your loans API later
-    alert(`Borrowing book ${bookId} - This will be implemented in Loans controller`);
+    try {
+      if (!session?.user?.id) {
+        alert('Please log in to borrow books');
+        return;
+      }
+
+      // Debug: Log session info
+      console.log('Full session:', session);
+      console.log('Session user ID:', session.user.id);
+      console.log('Session user email:', session.user.email);
+      console.log('Book ID:', bookId);
+
+      // Show loading state
+      const bookTitle = books.find(book => book.id === bookId)?.title || 'this book';
+      
+      const requestBody = {
+        bookId: bookId,
+        userId: session.user.id,
+      };
+
+      console.log('Request body:', requestBody);
+      
+      const response = await fetch('http://localhost:5000/api/loans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log('Error response text:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Response body:', result);
+
+      if (result.success) {
+        alert(`Successfully borrowed "${result.loan.book.title}"! \nDue date: ${new Date(result.loan.dueAt).toLocaleDateString()}\n\nYou can view your loans in the "My Loans" section.`);
+        // Refresh the books list to update availability
+        await fetchBooks();
+      } else {
+        alert(`Failed to borrow ${bookTitle}: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error borrowing book:', error);
+      alert(`Failed to borrow book: ${error.message || 'Please check your internet connection and try again.'}`);
+    }
   };
 
   if (loading) {
@@ -316,7 +367,11 @@ export default function BooksPage() {
                       {!isLibrarian && book.availableCopies > 0 && (
                         <Button 
                           size="sm" 
-                          onClick={() => handleBorrowBook(book.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleBorrowBook(book.id);
+                          }}
                         >
                           Borrow
                         </Button>

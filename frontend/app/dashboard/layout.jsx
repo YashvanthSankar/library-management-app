@@ -14,7 +14,7 @@ import {
 	DropdownMenuTrigger,
 	DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Settings, Book, BookOpen, Users, FileText, Menu, X } from "lucide-react";
+import { LogOut, User, Settings, Book, BookOpen, Users, FileText, Menu, X, DollarSign } from "lucide-react";
 
 export default function DashboardLayout({ children }) {
 	const { data: session, status } = useSession();
@@ -61,14 +61,13 @@ export default function DashboardLayout({ children }) {
 				...commonItems,
 				{ href: '/dashboard/members', label: 'Members', icon: Users },
 				{ href: '/dashboard/loans', label: 'Loans', icon: BookOpen },
-				{ href: '/dashboard/fines', label: 'Fines', icon: Settings },
+				{ href: '/dashboard/fines', label: 'Fines', icon: DollarSign },
 			];
 		} else {
 			return [
 				...commonItems,
 				{ href: '/dashboard/my-loans', label: 'My Loans', icon: BookOpen },
-				{ href: '/dashboard/my-fines', label: 'My Fines', icon: Settings },
-				{ href: '/dashboard/profile', label: 'My Profile', icon: User },
+				{ href: '/dashboard/my-fines', label: 'My Fines', icon: DollarSign },
 			];
 		}
 	};
@@ -140,9 +139,9 @@ export default function DashboardLayout({ children }) {
 						{/* Right side - User Profile & Theme */}
 						<div className="flex items-center space-x-4">
 							{/* Welcome Message */}
-							<div className="hidden md:block text-sm text-gray-600 dark:text-gray-300">
+							{/* <div className="hidden md:block text-sm text-gray-600 dark:text-gray-300">
 								Welcome back, {session.user?.name || 'User'}!
-							</div>
+							</div> */}
 
 							{/* Role Badge */}
 							<div className="hidden sm:block">

@@ -9,6 +9,7 @@ dotenv.config({ path: "./.env" });
 import BooksRouter from "./routes/books.route.js";
 import UsersRouter from "./routes/users.route.js";
 import LoansRouter from "./routes/loans.route.js";
+import FinesRouter from "./routes/fines.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,8 +17,11 @@ const PORT = process.env.PORT || 5000;
 //middlewares
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:3000",
+      "http://localhost:3001"
+    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   })
 );
@@ -38,6 +42,7 @@ app.get("/", (req, res) => {
 app.use("/api/books", BooksRouter);
 app.use("/api/users", UsersRouter);
 app.use("/api/loans", LoansRouter);
+app.use("/api/fines", FinesRouter);
 
 //error handler
 app.use((err, req, res, next) => {
