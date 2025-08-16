@@ -1,36 +1,37 @@
 "use client";
 
 import { useState } from "react";
+import { signIn, getProviders } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { Github, Mail } from "lucide-react";
 
 export default function Login() {
   const [role, setRole] = useState("borrower"); // borrower | librarian
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const payload = {
-      role,
-      email: formData.get("email"),
-      password: formData.get("password"),
-    };
-    // TODO: replace with real API call
+  async function handleSocialLogin(provider) {
     setLoading(true);
-    console.log("LOGIN_ATTEMPT", payload);
-    setTimeout(() => setLoading(false), 800);
+    try {
+      await signIn(provider, { 
+        callbackUrl: "/dashboard",
+        // Pass role as part of the callback
+        role: role
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const isLibrarian = role === "librarian";
@@ -44,12 +45,18 @@ export default function Login() {
               {isLibrarian ? "Librarian Login" : "Borrower Login"}
             </CardTitle>
           </div>
+          <CardDescription>
+            Choose your role and sign in with your preferred account
+          </CardDescription>
+          
+          {/* Role Toggle */}
           <div className="flex gap-2">
             <Button
               type="button"
               variant={isLibrarian ? "outline" : "default"}
               className={!isLibrarian ? "bg-black text-white dark:bg-white dark:text-black" : ""}
               onClick={() => setRole("borrower")}
+              size="sm"
             >
               Borrower
             </Button>
@@ -58,53 +65,55 @@ export default function Login() {
               variant={isLibrarian ? "default" : "outline"}
               className={isLibrarian ? "bg-black text-white dark:bg-white dark:text-black" : ""}
               onClick={() => setRole("librarian")}
+              size="sm"
             >
               Librarian
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <input type="hidden" name="role" value={role} />
-            <div className="grid gap-2">
-              <Label htmlFor="email">{isLibrarian ? "Work Email" : "Email"}</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder={isLibrarian ? "librarian@library.org" : "you@example.com"}
-                required
-                autoComplete="email"
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-xs underline hover:no-underline">
-                  Forgot?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                autoComplete={isLibrarian ? "current-password" : "new-password"}
-              />
-            </div>
+
+        <CardContent className="space-y-4">
+          {/* Social Login Buttons */}
+          <div className="space-y-3">
             <Button
-              type="submit"
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => handleSocialLogin("google")}
               disabled={loading}
-              className="w-full bg-black text-white dark:bg-white dark:text-black"
             >
-              {loading ? "Signing in..." : "Login"}
+              <Mail className="mr-2 h-4 w-4" />
+              Continue with Google
             </Button>
-          </form>
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => handleSocialLogin("github")}
+              disabled={loading}
+            >
+              <Github className="mr-2 h-4 w-4" />
+              Continue with GitHub
+            </Button>
+          </div>
+
+          {isLibrarian && (
+            <>
+              <Separator />
+              <div className="text-xs text-muted-foreground text-center">
+                💡 Librarians: Use your institutional Google/GitHub account
+              </div>
+            </>
+          )}
         </CardContent>
-       <CardFooter className="flex-col gap-2 text-xs text-muted-foreground">
+
+        <CardFooter className="flex-col gap-2 text-xs text-muted-foreground">
           <p className="text-center w-full">
-            Don't have an account? {" "}
-            <Link href="/signup" className="underline hover:no-underline">Sign Up</Link>
+            Don't have an account?{" "}
+            <Link href="/signup" className="underline hover:no-underline">
+              Sign Up
+            </Link>
           </p>
         </CardFooter>
       </Card>

@@ -1,8 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+	DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { LogOut, User, Settings } from "lucide-react";
 
 // Re‑usable small stat card
 function Stat({ label, value, note }) {
@@ -160,34 +171,135 @@ function BorrowerView() {
 }
 
 export default function UnifiedDashboard() {
-	// TODO: derive from auth/session; manual toggle for now
-	const [role, setRole] = useState("borrower"); // 'borrower' | 'librarian'
+	const { data: session, status } = useSession();
+	const router = useRouter();
+	const [role, setRole] = useState("borrower");
+
+	// Redirect to login if not authenticated
+	useEffect(() => {
+		if (status === "loading") return;
+		if (!session) {
+			router.push("/login");
+		} else {
+			// Set role from session when available
+			setRole(session.user.role || "borrower");
+		}
+	}, [session, status, router]);
+
+	// Show loading while checking auth
+	if (status === "loading") {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
+				<div className="text-sm text-gray-500">Loading...</div>
+			</div>
+		);
+	}
+
+	// Don't render if no session
+	if (!session) {
+		return null;
+	}
+
+	const user = session.user;
+
+	// User Profile Component
+	function UserProfile() {
+		const getInitials = (name) => {
+			if (!name) return "U";
+			return name
+				.split(" ")
+				.map(word => word[0])
+				.join("")
+				.toUpperCase()
+				.slice(0, 2);
+		};
+
+		return (
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="ghost" className="relative h-10 w-10 rounded-full">
+						<Avatar className="h-10 w-10">
+							<AvatarImage src={user.image} alt={user.name || "User"} />
+							<AvatarFallback className="bg-gray-100 dark:bg-gray-800">
+								{getInitials(user.name)}
+							</AvatarFallback>
+						</Avatar>
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent className="w-56" align="end" forceMount>
+					<div className="flex flex-col space-y-1 p-2">
+						<p className="text-sm font-medium leading-none">{user.name}</p>
+						<p className="text-xs leading-none text-muted-foreground">
+							{user.email}
+						</p>
+						<div className="flex items-center gap-1 mt-1">
+							<div className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+								{role === "librarian" ? "📚 Librarian" : "📖 Borrower"}
+							</div>
+						</div>
+					</div>
+					<DropdownMenuSeparator />
+					{/* <DropdownMenuItem className="cursor-pointer">
+						<User className="mr-2 h-4 w-4" />
+						<span>Profile</span>
+					</DropdownMenuItem>
+					<DropdownMenuItem className="cursor-pointer">
+						<Settings className="mr-2 h-4 w-4" />
+						<span>Settings</span>
+					</DropdownMenuItem> */}
+					<DropdownMenuSeparator />
+					<DropdownMenuItem 
+						className="cursor-pointer text-red-600 dark:text-red-400"
+						onClick={() => signOut({ callbackUrl: "/" })}
+					>
+						<LogOut className="mr-2 h-4 w-4" />
+						<span>Log out</span>
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+		);
+	}
 
 	return (
 		<div className="min-h-screen px-6 py-8 bg-white dark:bg-black text-black dark:text-white space-y-8">
-					<header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-						<div className="flex items-start gap-4 w-full justify-between md:justify-start">
-							<div>
-								<h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-								<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Role: <span className="font-medium">{role}</span></p>
-							</div>
-							<ThemeToggle />
-						</div>
-						<div className="flex items-center gap-2">
-							<Button
-								size="sm"
-								variant={role === 'borrower' ? 'default' : 'outline'}
-								className={role === 'borrower' ? 'bg-black dark:bg-white text-white dark:text-black' : ''}
-								onClick={() => setRole('borrower')}
-							>Borrower</Button>
-							<Button
-								size="sm"
-								variant={role === 'librarian' ? 'default' : 'outline'}
-								className={role === 'librarian' ? 'bg-black dark:bg-white text-white dark:text-black' : ''}
-								onClick={() => setRole('librarian')}
-							>Librarian</Button>
-						</div>
-					</header>
+			<header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+				<div className="flex items-start gap-4 w-full justify-between md:justify-start">
+					<div>
+						<h1 className="text-2xl font-bold tracking-tight">
+							Welcome back, {user.name?.split(" ")[0] || "User"}!
+						</h1>
+						<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+							Role: <span className="font-medium capitalize">{role}</span>
+						</p>
+					</div>
+					<div className="flex items-center gap-3">
+						<ThemeToggle />
+						<UserProfile />
+					</div>
+				</div>
+				
+				{/* Keep role toggle for testing - remove in production */}
+				<div className="flex items-center gap-2">
+					{/* <span className="text-xs text-gray-500">Test Role:</span> */}
+					<Button
+						size="sm"
+						variant={role === 'borrower' ? 'default' : 'outline'}
+						className={role === 'borrower' ? 'bg-black dark:bg-white text-white dark:text-black' : ''}
+						onClick={() => setRole('borrower')}
+					>
+						Borrower
+					</Button>
+					<Button
+						size="sm"
+						variant={role === 'librarian' ? 'default' : 'outline'}
+						className={role === 'librarian' ? 'bg-black dark:bg-white text-white dark:text-black' : ''}
+						onClick={() => setRole('librarian')}
+					>
+						Librarian
+					</Button>
+				</div>
+			</header>
+			
 			{role === 'librarian' ? <LibrarianView /> : <BorrowerView />}
 		</div>
 	);

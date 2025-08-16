@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { SessionProvider } from "next-auth/react";
+import LoginBtn from "@/components/login-btn";
 
 const features = [
   { title: "Browse Books", desc: "Quick view of available titles." },
@@ -11,15 +13,15 @@ const features = [
 ];
 
 export default function Home() {
+
   return (
-    <>
       <div className="min-h-screen w-full flex flex-col bg-white dark:bg-black text-black dark:text-white">
         <header className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
           <h1 className="text-xl font-semibold tracking-tight">Library Management</h1>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link href="/login"><Button variant="outline" className="border-gray-400 dark:border-gray-600">Login</Button></Link>
-            <Link href="/signup"><Button className="bg-black dark:bg-white text-white dark:text-black">Sign Up</Button></Link>
+            {/* <Link href="/login"><Button variant="outline" className="border-gray-400 dark:border-gray-600">Login</Button></Link> */}
+            <LoginBtn />
           </div>
         </header>
         <main className="flex flex-col items-center text-center flex-1 px-6 py-16 max-w-5xl mx-auto w-full">
@@ -33,7 +35,7 @@ export default function Home() {
                 Go to Dashboard
               </Button>
             </Link>
-            <Link href='/signup'>
+            <Link href='/login'>
               <Button variant="outline" className="px-6 py-3 text-lg font-semibold border-gray-400 dark:border-gray-600">
                 Get Started
               </Button>
@@ -52,6 +54,5 @@ export default function Home() {
           © {new Date().getFullYear()} Library Management. All rights reserved.
         </footer>
       </div>
-    </>
   );
 }
