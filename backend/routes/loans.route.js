@@ -5,7 +5,7 @@ import {
   getUserLoans,
   createLoan,
   updateLoan,
-  deleteLoan
+  deleteLoan,
 } from "../controllers/loans.controller.js";
 
 const router = Router();

@@ -56,7 +56,7 @@ export default function MyFinesPage() {
 
   const handlePayFine = async (fineId) => {
     // In a real application, this would integrate with a payment gateway
-    const confirmPayment = confirm("This would redirect to a payment gateway. Mark as paid for demo?");
+    const confirmPayment = confirm("Proceed to payment gateway to pay this fine?");
     
     if (confirmPayment) {
       try {
@@ -65,7 +65,7 @@ export default function MyFinesPage() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ status: 'paid' }),
+          body: JSON.stringify({ status: 'PAID' }),
         });
 
         const result = await response.json();

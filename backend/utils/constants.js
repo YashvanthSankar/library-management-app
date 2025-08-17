@@ -1,22 +1,3 @@
-// User roles
-export const USER_ROLES = {
-  LIBRARIAN: "librarian",
-  BORROWER: "borrower",
-};
-
-// Loan statuses
-export const LOAN_STATUS = {
-  ACTIVE: "active",
-  RETURNED: "returned",
-  OVERDUE: "overdue",
-};
-
-// Fine statuses
-export const FINE_STATUS = {
-  UNPAID: "unpaid",
-  PAID: "paid",
-};
-
 // Default loan duration (in days)
 export const DEFAULT_LOAN_DURATION = 14;
 
@@ -25,21 +6,6 @@ export const MAX_BOOKS_PER_USER = 5;
 
 // Fine amount per day (in rupees)
 export const FINE_PER_DAY = 20;
-
-// Common book categories
-export const BOOK_CATEGORIES = [
-  "Fiction",
-  "Non-Fiction",
-  "Science",
-  "Technology",
-  "History",
-  "Biography",
-  "Romance",
-  "Mystery",
-  "Fantasy",
-  "Educational",
-  "Reference",
-];
 
 // API response messages
 export const MESSAGES = {

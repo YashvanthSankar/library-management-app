@@ -37,8 +37,8 @@ async function testDatabase() {
     console.log("\n👤 Adding a sample user...");
     const user = await prisma.user.create({
       data: {
-        email: "john@example.com",
-        name: "John Doe",
+        email: "test.user@example.com",
+        name: "Test User",
         role: "borrower",
       },
     });

@@ -15,10 +15,10 @@ export const getAllFines = async (req, res) => {
       where: whereClause,
       include: {
         user: { select: { id: true, name: true, email: true } },
-        loan: { 
-          include: { 
-            book: { select: { id: true, title: true, author: true } } 
-          } 
+        loan: {
+          include: {
+            book: { select: { id: true, title: true, author: true } },
+          },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -46,10 +46,10 @@ export const getUserFines = async (req, res) => {
     const fines = await prisma.fine.findMany({
       where: { userId },
       include: {
-        loan: { 
-          include: { 
-            book: { select: { id: true, title: true, author: true } } 
-          } 
+        loan: {
+          include: {
+            book: { select: { id: true, title: true, author: true } },
+          },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -78,10 +78,10 @@ export const getFineById = async (req, res) => {
       where: { id },
       include: {
         user: { select: { id: true, name: true, email: true } },
-        loan: { 
-          include: { 
-            book: { select: { id: true, title: true, author: true } } 
-          } 
+        loan: {
+          include: {
+            book: { select: { id: true, title: true, author: true } },
+          },
         },
       },
     });
@@ -129,10 +129,10 @@ export const createFine = async (req, res) => {
       },
       include: {
         user: { select: { id: true, name: true, email: true } },
-        loan: { 
-          include: { 
-            book: { select: { id: true, title: true, author: true } } 
-          } 
+        loan: {
+          include: {
+            book: { select: { id: true, title: true, author: true } },
+          },
         },
       },
     });
@@ -170,10 +170,10 @@ export const updateFineStatus = async (req, res) => {
       data: { status },
       include: {
         user: { select: { id: true, name: true, email: true } },
-        loan: { 
-          include: { 
-            book: { select: { id: true, title: true, author: true } } 
-          } 
+        loan: {
+          include: {
+            book: { select: { id: true, title: true, author: true } },
+          },
         },
       },
     });
@@ -265,10 +265,10 @@ export const autoGenerateFines = async (req, res) => {
         },
         include: {
           user: { select: { id: true, name: true, email: true } },
-          loan: { 
-            include: { 
-              book: { select: { id: true, title: true, author: true } } 
-            } 
+          loan: {
+            include: {
+              book: { select: { id: true, title: true, author: true } },
+            },
           },
         },
       });

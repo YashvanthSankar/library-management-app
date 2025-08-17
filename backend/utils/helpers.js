@@ -1,15 +1,10 @@
-import { DEFAULT_LOAN_DURATION, FINE_PER_DAY } from "./constants.js";
-
 /**
  * Calculate due date for a loan
  * @param {Date} startDate - The loan start date
  * @param {number} days - Number of days to add (default: 14)
  * @returns {Date} The due date
  */
-export const calculateDueDate = (
-  startDate = new Date(),
-  days = DEFAULT_LOAN_DURATION
-) => {
+export const calculateDueDate = (startDate = new Date(), days = 14) => {
   const dueDate = new Date(startDate);
   dueDate.setDate(dueDate.getDate() + days);
   return dueDate;
@@ -34,7 +29,7 @@ export const isOverdue = (dueDate) => {
 export const calculateFine = (
   dueDate,
   returnDate = new Date(),
-  finePerDay = FINE_PER_DAY
+  finePerDay = 20
 ) => {
   if (!isOverdue(dueDate)) return 0;
 

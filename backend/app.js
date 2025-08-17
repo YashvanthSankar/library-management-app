@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
 import limiter from "./middlewares/rate-limiter.js";
+import { initScheduledTasks } from "./utils/scheduler.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -19,7 +20,7 @@ app.use(
   cors({
     origin: [
       process.env.FRONTEND_URL || "http://localhost:3000",
-      "http://localhost:3001"
+      "http://localhost:3001",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
@@ -58,6 +59,9 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+
+  // Initialize scheduled tasks for automatic fine calculation
+  initScheduledTasks();
 });
 
 export default app;

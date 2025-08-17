@@ -134,10 +134,19 @@ function LibrarianView() {
 			const usersData = await usersResponse.json();
 			const totalUsers = usersData.success ? usersData.data?.length || 0 : 0;
 
-			// TODO: When loans API is ready, replace these with real calls
-			// For now, calculate mock data based on available data
-			const activeLoans = Math.floor(totalUsers * 0.6); // 60% of users have active loans
-			const overdueLoans = Math.floor(activeLoans * 0.2); // 20% of active loans are overdue
+			// Fetch real loans data
+			const loansResponse = await fetch("http://localhost:5000/api/loans");
+			const loansData = await loansResponse.json();
+			const allLoans = Array.isArray(loansData) ? loansData : [];
+
+			// Calculate real stats from loans
+			const activeLoans = allLoans.filter(loan => loan.status === 'active').length;
+			const overdueLoans = allLoans.filter(loan => {
+				if (loan.status !== 'active') return false;
+				const dueDate = new Date(loan.dueAt);
+				const today = new Date();
+				return dueDate < today;
+			}).length;
 
 			setStats({
 				totalBooks,
@@ -146,11 +155,14 @@ function LibrarianView() {
 				overdueLoans,
 			});
 
-			// Generate recent activity based on real data
+			// Generate recent activity from real data
 			const activities = [];
 			
+			// Add recent book additions
 			if (booksData.success && booksData.books?.length > 0) {
-				const recentBooks = booksData.books.slice(0, 2);
+				const recentBooks = booksData.books
+					.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+					.slice(0, 2);
 				recentBooks.forEach((book, idx) => {
 					activities.push({
 						action: "New book added",
@@ -160,8 +172,11 @@ function LibrarianView() {
 				});
 			}
 
+			// Add recent member registrations
 			if (usersData.success && usersData.data?.length > 0) {
-				const recentUsers = usersData.data.slice(0, 2);
+				const recentUsers = usersData.data
+					.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+					.slice(0, 2);
 				recentUsers.forEach((user, idx) => {
 					activities.push({
 						action: "New member registered",
@@ -171,19 +186,31 @@ function LibrarianView() {
 				});
 			}
 
-			// Add some mock loan activities
-			activities.push(
-				{
-					action: "Book borrowed",
-					details: "JavaScript: The Good Parts by Alice",
-					time: "2 hours ago"
-				},
-				{
-					action: "Book returned",
-					details: "Clean Code by Bob",
-					time: "5 hours ago"
-				}
-			);
+			// Add recent loan activities from real data
+			const recentLoans = allLoans
+				.sort((a, b) => new Date(b.loanedAt) - new Date(a.loanedAt))
+				.slice(0, 3);
+
+			recentLoans.forEach((loan, idx) => {
+				const loanDate = new Date(loan.loanedAt);
+				const now = new Date();
+				const hoursDiff = Math.floor((now - loanDate) / (1000 * 60 * 60));
+				
+				let timeText;
+				if (hoursDiff < 1) timeText = "Just now";
+				else if (hoursDiff < 24) timeText = `${hoursDiff} hours ago`;
+				else timeText = `${Math.floor(hoursDiff / 24)} days ago`;
+
+				const action = loan.status === 'returned' ? 'Book returned' : 'Book borrowed';
+				const userName = loan.user?.name || 'Unknown User';
+				const bookTitle = loan.book?.title || 'Unknown Book';
+
+				activities.push({
+					action,
+					details: `${bookTitle} by ${userName}`,
+					time: timeText
+				});
+			});
 
 			setRecentActivity(activities);
 		} catch (error) {
@@ -277,64 +304,75 @@ function BorrowerView() {
 		try {
 			setLoading(true);
 			
-			// TODO: When loans API is ready, fetch real user loans
-			// For now, using mock data based on session
 			const userId = session?.user?.id;
-			
-			// Mock current loans for this user
-			const mockLoans = [
-				{ 
-					id: `${userId}_1`, 
-					title: "JavaScript: The Good Parts", 
-					author: "Douglas Crockford",
-					dueDate: "2025-08-25", 
-					daysLeft: 9,
-					status: "active"
-				},
-				{ 
-					id: `${userId}_2`, 
-					title: "Clean Architecture", 
-					author: "Robert Martin",
-					dueDate: "2025-08-20", 
-					daysLeft: 4,
-					status: "due-soon"
-				},
-			];
+			if (!userId) return;
 
-			// Calculate stats
-			const dueSoonCount = mockLoans.filter(loan => loan.status === 'due-soon').length;
-			const totalBooksRead = mockLoans.length + 6; // Mock: current + returned books
+			// Fetch real user loans from API
+			const loansResponse = await fetch(`http://localhost:5000/api/loans/user/${userId}`);
+			const userLoans = await loansResponse.json();
 
-			setCurrentLoans(mockLoans);
-			setStats({
-				currentLoans: mockLoans.length,
-				dueSoon: dueSoonCount,
-				readingGoal: `${totalBooksRead}/12`
+			// Calculate stats from real data
+			const activeLoans = userLoans.filter(loan => loan.status === 'active');
+			const dueSoon = activeLoans.filter(loan => {
+				const dueDate = new Date(loan.dueAt);
+				const today = new Date();
+				const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+				return daysLeft <= 3 && daysLeft >= 0;
 			});
 
-			// Generate activity based on user session
-			const activities = [
-				{ 
-					action: "Book borrowed", 
-					details: "JavaScript: The Good Parts", 
-					time: "3 days ago" 
-				},
-				{ 
-					action: "Book returned", 
-					details: "Design Patterns", 
-					time: "1 week ago" 
-				},
-				{ 
-					action: "Book renewed", 
-					details: "Clean Code", 
-					time: "2 weeks ago" 
-				},
-				{ 
-					action: "Account updated", 
-					details: `Welcome ${session?.user?.name}!`, 
-					time: "1 month ago" 
+			// Get completed loans count
+			const completedLoans = userLoans.filter(loan => loan.status === 'returned');
+
+			setCurrentLoans(activeLoans);
+			setStats({
+				currentLoans: activeLoans.length,
+				dueSoon: dueSoon.length,
+				readingGoal: `${completedLoans.length}/12`
+			});
+
+			// Generate recent activity from real loans data
+			const activities = [];
+			
+			// Add recent loans as activities
+			const recentLoans = userLoans
+				.sort((a, b) => new Date(b.loanedAt) - new Date(a.loanedAt))
+				.slice(0, 3);
+
+			recentLoans.forEach(loan => {
+				const loanDate = new Date(loan.loanedAt);
+				const now = new Date();
+				const daysDiff = Math.floor((now - loanDate) / (1000 * 60 * 60 * 24));
+				
+				let timeText;
+				if (daysDiff === 0) timeText = "Today";
+				else if (daysDiff === 1) timeText = "Yesterday";
+				else if (daysDiff < 7) timeText = `${daysDiff} days ago`;
+				else if (daysDiff < 30) timeText = `${Math.floor(daysDiff / 7)} weeks ago`;
+				else timeText = `${Math.floor(daysDiff / 30)} months ago`;
+
+				if (loan.status === 'returned') {
+					activities.push({
+						action: "Book returned",
+						details: loan.book?.title || "Unknown Book",
+						time: timeText
+					});
+				} else {
+					activities.push({
+						action: "Book borrowed",
+						details: loan.book?.title || "Unknown Book",
+						time: timeText
+					});
 				}
-			];
+			});
+
+			// Add welcome message if no other activities
+			if (activities.length === 0) {
+				activities.push({
+					action: "Account active",
+					details: `Welcome ${session?.user?.name}!`,
+					time: "Now"
+				});
+			}
 
 			setRecentActivity(activities);
 		} catch (error) {

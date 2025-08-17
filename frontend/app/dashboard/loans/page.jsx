@@ -73,69 +73,50 @@ export default function LoansPage() {
 	const fetchAllLoans = async () => {
 		try {
 			setLoading(true);
-			// For now, using mock data since we don't have loans API yet
-			// TODO: Replace with actual API call
-			const mockLoans = [
-				{
-					id: "1",
-					book: {
-						id: "1",
-						title: "Clean Code",
-						author: "Robert Martin",
-						isbn: "978-0132350884"
-					},
-					user: {
-						id: "1",
-						name: "Alice Johnson",
-						email: "alice@example.com"
-					},
-					loanDate: "2025-08-01T10:00:00Z",
-					dueDate: "2025-08-15T23:59:59Z",
-					returnDate: null,
-					status: "active"
-				},
-				{
-					id: "2",
-					book: {
-						id: "2",
-						title: "JavaScript: The Good Parts",
-						author: "Douglas Crockford",
-						isbn: "978-0596517748"
-					},
-					user: {
-						id: "2",
-						name: "Bob Smith",
-						email: "bob@example.com"
-					},
-					loanDate: "2025-07-25T14:30:00Z",
-					dueDate: "2025-08-10T23:59:59Z",
-					returnDate: null,
-					status: "overdue"
-				},
-				{
-					id: "3",
-					book: {
-						id: "3",
-						title: "Design Patterns",
-						author: "Gang of Four",
-						isbn: "978-0201633610"
-					},
-					user: {
-						id: "3",
-						name: "Charlie Brown",
-						email: "charlie@example.com"
-					},
-					loanDate: "2025-07-20T09:15:00Z",
-					dueDate: "2025-08-05T23:59:59Z",
-					returnDate: "2025-08-03T16:45:00Z",
-					status: "returned"
+			
+			// Fetch real loans data from API
+			const response = await fetch("http://localhost:5000/api/loans");
+			if (!response.ok) {
+				throw new Error('Failed to fetch loans');
+			}
+			
+			const loansData = await response.json();
+			
+			// Transform API data to match expected format
+			const transformedLoans = loansData.map(loan => {
+				// Calculate if loan is overdue
+				let status = loan.status;
+				if (loan.status === 'active' && new Date(loan.dueAt) < new Date()) {
+					status = 'overdue';
 				}
-			];
+				
+				return {
+					id: loan.id,
+					book: {
+						id: loan.book?.id || loan.bookId,
+						title: loan.book?.title || 'Unknown Title',
+						author: loan.book?.author || 'Unknown Author',
+						isbn: loan.book?.isbn || 'N/A'
+					},
+					user: {
+						id: loan.user?.id || loan.userId,
+						name: loan.user?.name || 'Unknown User',
+						email: loan.user?.email || 'unknown@email.com'
+					},
+					loanDate: loan.loanedAt,
+					dueDate: loan.dueAt,
+					returnDate: loan.returnedAt,
+					status: status
+				};
+			});
 
-			setLoans(mockLoans);
-			setFilteredLoans(mockLoans);
+			setLoans(transformedLoans);
+			setFilteredLoans(transformedLoans);
 		} catch (error) {
 			console.error("Error fetching loans:", error);
+			// Set empty array on error
+			setLoans([]);
+			setFilteredLoans([]);
 		} finally {
 			setLoading(false);
 		}
@@ -143,17 +124,44 @@ export default function LoansPage() {
 
 	const handleReturnBook = async (loanId) => {
 		try {
-			// TODO: Implement actual API call to return book
 			console.log("Returning book for loan:", loanId);
 			
-			// Update local state for now
+			// Make API call to return the book
+			const response = await fetch(`http://localhost:5000/api/loans/${loanId}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					status: 'returned'
+				})
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to return book');
+			}
+
+			const updatedLoan = await response.json();
+			console.log("Book returned successfully:", updatedLoan);
+
+			// Update local state with the returned loan data
 			setLoans(prev => prev.map(loan => 
 				loan.id === loanId 
-					? { ...loan, status: 'returned', returnDate: new Date().toISOString() }
+					? { 
+						...loan, 
+						status: 'returned', 
+						returnDate: updatedLoan.returnedAt || new Date().toISOString() 
+					}
 					: loan
 			));
+
+			// Show success message
+			alert(`Book "${updatedLoan.book.title}" has been successfully returned!`);
+			
 		} catch (error) {
 			console.error("Error returning book:", error);
+			alert(`Failed to return book: ${error.message}`);
 		}
 	};
 

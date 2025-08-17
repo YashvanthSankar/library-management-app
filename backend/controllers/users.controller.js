@@ -118,7 +118,7 @@ export const updateMemberStatus = async (req, res) => {
       });
     }
 
-      console.error("Error updating member status:", error);
+    console.error("Error updating member status:", error);
     res.status(500).json({
       success: false,
       message: "Failed to update member status",

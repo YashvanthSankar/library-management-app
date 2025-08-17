@@ -15,6 +15,7 @@ import {
 	DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, Settings, Book, BookOpen, Users, FileText, Menu, X, DollarSign } from "lucide-react";
+import { useUserSync } from "@/lib/userSync";
 
 export default function DashboardLayout({ children }) {
 	const { data: session, status } = useSession();
@@ -22,6 +23,9 @@ export default function DashboardLayout({ children }) {
 	const pathname = usePathname();
 	const [userRole, setUserRole] = useState(null);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+	// Automatically sync user with database when session loads
+	useUserSync(session);
 
 	// Get user role from localStorage
 	useEffect(() => {

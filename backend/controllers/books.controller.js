@@ -1,9 +1,4 @@
 import { prisma } from "../utils/database.js";
-import {
-  bookCreateSchema,
-  bookUpdateSchema,
-} from "../utils/validationSchemas.js";
-import { MESSAGES } from "../utils/constants.js";
 
 // GET ALL BOOKS
 export const getAllBooks = async (req, res) => {
@@ -47,14 +42,25 @@ export const getBookById = async (req, res) => {
 // CREATE NEW BOOK
 export const createBook = async (req, res) => {
   try {
-    // Validate input data
-    const validatedData = bookCreateSchema.parse(req.body);
+    const { title, author, isbn, category, totalCopies = 1 } = req.body;
+
+    // Basic validation
+    if (!title || !author) {
+      return res.status(400).json({
+        error: "Title and author are required",
+      });
+    }
 
     // Set availableCopies to equal totalCopies for new books
-    validatedData.availableCopies = validatedData.totalCopies;
-
     const book = await prisma.book.create({
-      data: validatedData,
+      data: {
+        title,
+        author,
+        isbn,
+        category,
+        totalCopies,
+        availableCopies: totalCopies,
+      },
     });
 
     res.status(201).json({
@@ -62,13 +68,6 @@ export const createBook = async (req, res) => {
       book,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: "Validation error",
-        details: error.errors,
-      });
-    }
-
     if (error.code === "P2002") {
       // Unique constraint violation
       return res
@@ -96,11 +95,18 @@ export const updateBook = async (req, res) => {
     }
 
     // Validate input data
-    const validatedData = bookUpdateSchema.parse(req.body);
+    const { title, author, isbn, category, totalCopies } = req.body;
+    const updateData = {};
+
+    if (title) updateData.title = title;
+    if (author) updateData.author = author;
+    if (isbn) updateData.isbn = isbn;
+    if (category) updateData.category = category;
+    if (totalCopies) updateData.totalCopies = totalCopies;
 
     const book = await prisma.book.update({
       where: { id },
-      data: validatedData,
+      data: updateData,
     });
 
     res.json({
@@ -108,13 +114,6 @@ export const updateBook = async (req, res) => {
       book,
     });
   } catch (error) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: "Validation error",
-        details: error.errors,
-      });
-    }
-
     console.error("Error updating book:", error);
     res.status(500).json({ error: "Internal server error" });
   }
