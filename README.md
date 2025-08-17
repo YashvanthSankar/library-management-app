@@ -1,16 +1,12 @@
 # Library Management System 📚
 
-> **Author:** Yashvanth S  
+> **Author:** Yashvanth S
 
 ## 🛠 Tech Stack
 
-### Frontend
+**Frontend:** Next.js, shadcn/ui, Tailwind CSS, NextAuth.js
 
-**Next.js**, **shadcn/ui**, **Tailwind CSS**, **NextAuth.js**
-
-### Backend
-
-**Node.js**, **Express.js**, **Prisma ORM**, **PostgreSQL**
+**Backend:** Node.js, Express.js, Prisma ORM, PostgreSQL
 
 ## 🚀 What Works
 
@@ -44,7 +40,6 @@
 - **Borrower Dashboard:** My loans, browse books, pay fines
 - **Librarian Dashboard:** Manage all loans, books, users, system stats
 
-
 ## 📊 Key Features
 
 ✅ **Real-time inventory** - Available copies update on borrow/return  
@@ -55,16 +50,16 @@
 
 ## 🚦 Setup
 
+````bash
 ```bash
-# Backend
-cd backend && npm install && npm run dev
+# Quick Start (runs both frontend & backend)
+npm run setup && npm run dev
 
-# Frontend
-cd frontend && npm install && npm run dev
-```
+# Or run individually
+npm run dev:frontend  # Frontend only (port 3000)
+npm run dev:backend   # Backend only (port 5000)
+````
 
-**Environment:** Copy `.env.example` → `.env` and add your database/auth credentials.
-
----
+**Environment:** Copy `.env.example` → `.env` and add your database/auth credentials.---
 
 _Complete library management solution with modern UI and robust backend._
