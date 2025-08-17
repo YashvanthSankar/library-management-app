@@ -34,8 +34,8 @@ const autoGenerateOverdueFines = async (userId = null) => {
       });
 
       if (!existingFine && daysOverdue > 0) {
-        // Create fine (₹10 per day)
-        const fineAmount = daysOverdue * 10;
+        // Create fine (₹20 per day)
+        const fineAmount = daysOverdue * 20;
 
         await prisma.fine.create({
           data: {
@@ -52,7 +52,7 @@ const autoGenerateOverdueFines = async (userId = null) => {
         );
       } else if (existingFine && existingFine.status === "UNPAID") {
         // Update existing fine amount if still unpaid
-        const newFineAmount = daysOverdue * 10;
+        const newFineAmount = daysOverdue * 20;
 
         if (newFineAmount !== existingFine.amount) {
           await prisma.fine.update({

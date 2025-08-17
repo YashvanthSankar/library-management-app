@@ -233,7 +233,7 @@ export const deleteFine = async (req, res) => {
 // POST /api/fines/auto-generate - Auto-generate fines for overdue books
 export const autoGenerateFines = async (req, res) => {
   try {
-    const fineAmountPerDay = 10.0; // ₹10 per day overdue
+    const fineAmountPerDay = 20.0; // ₹20 per day overdue
     const now = new Date();
 
     // Find all overdue loans that don't have fines yet
