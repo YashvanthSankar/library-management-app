@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Users, Clock, AlertCircle, Plus, TrendingUp } from "lucide-react";
+import { API_URL } from "@/lib/utils";
 
 // Re‑usable stat card with icon
 function Stat({ label, value, note, icon: Icon, color = "blue" }) {
@@ -122,8 +123,8 @@ function LibrarianView() {
 			
 			// Fetch all data in parallel
 			const [booksResponse, usersResponse] = await Promise.all([
-				fetch("http://localhost:5000/api/books"),
-				fetch("http://localhost:5000/api/users")
+				fetch(`${API_URL}/api/books`),
+				fetch(`${API_URL}/api/users`)
 			]);
 
 			// Process books data
@@ -135,7 +136,7 @@ function LibrarianView() {
 			const totalUsers = usersData.success ? usersData.data?.length || 0 : 0;
 
 			// Fetch real loans data
-			const loansResponse = await fetch("http://localhost:5000/api/loans");
+			const loansResponse = await fetch(`${API_URL}/api/loans`);
 			const loansData = await loansResponse.json();
 			const allLoans = Array.isArray(loansData) ? loansData : [];
 
@@ -308,7 +309,7 @@ function BorrowerView() {
 			if (!userId) return;
 
 			// Fetch real user loans from API
-			const loansResponse = await fetch(`http://localhost:5000/api/loans/user/${userId}`);
+			const loansResponse = await fetch(`${API_URL}/api/loans/user/${userId}`);
 			const userLoans = await loansResponse.json();
 
 			// Calculate stats from real data

@@ -37,7 +37,7 @@ export default function MyFinesPage() {
   const fetchMyFines = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/fines/user/${session.user.id}`);
+      const response = await fetch(`${API_URL}/api/fines/user/${session.user.id}`);
       const result = await response.json();
       
       if (result.success) {
@@ -60,7 +60,7 @@ export default function MyFinesPage() {
     
     if (confirmPayment) {
       try {
-        const response = await fetch(`http://localhost:5000/api/fines/${fineId}/status`, {
+        const response = await fetch(`${API_URL}/api/fines/${fineId}/status`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',

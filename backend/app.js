@@ -21,6 +21,8 @@ app.use(
     origin: [
       process.env.FRONTEND_URL || "http://localhost:3000",
       "http://localhost:3001",
+      "https://library-manager-tau.vercel.app",
+      /\.vercel\.app$/,
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,

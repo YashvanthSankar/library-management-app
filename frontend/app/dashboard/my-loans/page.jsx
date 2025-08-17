@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Calendar, AlertCircle, RefreshCw } from "lucide-react";
+import { API_URL } from "@/lib/utils";
 
 export default function MyLoansPage() {
   const { data: session } = useSession();
@@ -29,7 +30,7 @@ export default function MyLoansPage() {
   const fetchMyLoans = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/loans/user/${session.user.id}`);
+      const response = await fetch(`${API_URL}/api/loans/user/${session.user.id}`);
       const result = await response.json();
       
       if (response.ok) {
@@ -53,7 +54,7 @@ export default function MyLoansPage() {
       const newDueDate = new Date(loan.dueAt);
       newDueDate.setDate(newDueDate.getDate() + 14);
 
-      const response = await fetch(`http://localhost:5000/api/loans/${loanId}`, {
+      const response = await fetch(`${API_URL}/api/loans/${loanId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

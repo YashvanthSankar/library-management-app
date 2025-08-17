@@ -60,7 +60,7 @@ export default function MembersPage() {
 	const fetchMembers = async () => {
 		try {
 			setLoading(true);
-			const response = await fetch("http://localhost:5000/api/users");
+			const response = await fetch("${API_URL}/api/users");
 			
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);
@@ -91,7 +91,7 @@ export default function MembersPage() {
 		try {
 			const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
 			
-			const response = await fetch(`http://localhost:5000/api/users/${memberId}/status`, {
+			const response = await fetch(`${API_URL}/api/users/${memberId}/status`, {
 				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json',

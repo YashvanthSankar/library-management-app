@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { API_URL } from "@/lib/utils";
 import {
 	Table,
 	TableBody,
@@ -75,7 +76,7 @@ export default function LoansPage() {
 			setLoading(true);
 			
 			// Fetch real loans data from API
-			const response = await fetch("http://localhost:5000/api/loans");
+			const response = await fetch(`${API_URL}/api/loans`);
 			if (!response.ok) {
 				throw new Error('Failed to fetch loans');
 			}
@@ -127,7 +128,7 @@ export default function LoansPage() {
 			console.log("Returning book for loan:", loanId);
 			
 			// Make API call to return the book
-			const response = await fetch(`http://localhost:5000/api/loans/${loanId}`, {
+			const response = await fetch(`${API_URL}/api/loans/${loanId}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { API_URL } from "./utils";
 
 // Utility to sync session user with backend database
 export const syncUserWithDatabase = async (session) => {
@@ -9,7 +10,7 @@ export const syncUserWithDatabase = async (session) => {
   }
 
   try {
-    const response = await fetch("http://localhost:5000/api/users", {
+    const response = await fetch(`${API_URL}/api/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

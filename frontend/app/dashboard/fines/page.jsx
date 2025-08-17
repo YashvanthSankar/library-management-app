@@ -59,8 +59,8 @@ export default function FinesPage() {
       setLoading(true);
       
       const url = isLibrarian 
-        ? `http://localhost:5000/api/fines${statusFilter !== 'all' ? `?status=${statusFilter}` : ''}`
-        : `http://localhost:5000/api/fines/user/${session?.user?.id}`;
+        ? `${API_URL}/api/fines${statusFilter !== 'all' ? `?status=${statusFilter}` : ''}`
+        : `${API_URL}/api/fines/user/${session?.user?.id}`;
       
       const response = await fetch(url);
       const result = await response.json();
@@ -81,7 +81,7 @@ export default function FinesPage() {
 
   const handleMarkAsPaid = async (fineId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/fines/${fineId}/status`, {
+      const response = await fetch(`${API_URL}/api/fines/${fineId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ export default function FinesPage() {
     if (!isLibrarian) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/fines/auto-generate', {
+      const response = await fetch('${API_URL}/api/fines/auto-generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

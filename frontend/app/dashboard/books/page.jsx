@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Edit, Trash2, Book, Users } from "lucide-react";
+import { API_URL } from "@/lib/utils";
 
 export default function BooksPage() {
   const { data: session } = useSession();
@@ -47,7 +48,7 @@ export default function BooksPage() {
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/books');
+      const response = await fetch('${API_URL}/api/books');
       const data = await response.json();
       
       // Ensure data is an array
@@ -87,7 +88,7 @@ export default function BooksPage() {
   // Add new book (Librarian only)
   const handleAddBook = async (bookData) => {
     try {
-      const response = await fetch('http://localhost:5000/api/books', {
+      const response = await fetch('${API_URL}/api/books', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +112,7 @@ export default function BooksPage() {
   // Update book (Librarian only)
   const handleUpdateBook = async (bookData) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/books/${selectedBook.id}`, {
+      const response = await fetch(`${API_URL}/api/books/${selectedBook.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -138,7 +139,7 @@ export default function BooksPage() {
     if (!confirm('Are you sure you want to delete this book?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/books/${bookId}`, {
+      const response = await fetch(`${API_URL}/api/books/${bookId}`, {
         method: 'DELETE',
       });
 
@@ -178,7 +179,7 @@ export default function BooksPage() {
 
       console.log('Request body:', requestBody);
       
-      const response = await fetch('http://localhost:5000/api/loans', {
+      const response = await fetch('${API_URL}/api/loans', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
