@@ -22,6 +22,7 @@ import {
   Calendar,
   CreditCard
 } from "lucide-react";
+import { API_URL } from "@/lib/utils";
 
 export default function MyFinesPage() {
   const { data: session } = useSession();

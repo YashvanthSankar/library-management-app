@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Edit, Trash2, Book, Users } from "lucide-react";
+import { API_URL } from "@/lib/utils";
 
 export default function BooksPage() {
   const { data: session } = useSession();
@@ -47,7 +48,7 @@ export default function BooksPage() {
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const response = await fetch('${API_URL}/api/books');
+      const response = await fetch(`${API_URL}/api/books`);
       const data = await response.json();
       
       // Ensure data is an array
@@ -87,7 +88,7 @@ export default function BooksPage() {
   // Add new book (Librarian only)
   const handleAddBook = async (bookData) => {
     try {
-      const response = await fetch('${API_URL}/api/books', {
+      const response = await fetch(`${API_URL}/api/books`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

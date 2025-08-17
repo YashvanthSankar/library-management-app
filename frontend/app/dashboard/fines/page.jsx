@@ -32,6 +32,7 @@ import {
   Calendar,
   TrendingUp
 } from "lucide-react";
+import { API_URL } from "@/lib/utils";
 
 export default function FinesPage() {
   const { data: session } = useSession();
@@ -107,7 +108,7 @@ export default function FinesPage() {
     if (!isLibrarian) return;
 
     try {
-      const response = await fetch('${API_URL}/api/fines/auto-generate', {
+      const response = await fetch(`${API_URL}/api/fines/auto-generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

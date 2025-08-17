@@ -23,6 +23,7 @@ import {
 	Shield,
 	UserRound
 } from "lucide-react";
+import { API_URL } from "@/lib/utils";
 
 export default function MembersPage() {
 	const { data: session } = useSession();
@@ -60,7 +61,7 @@ export default function MembersPage() {
 	const fetchMembers = async () => {
 		try {
 			setLoading(true);
-			const response = await fetch("${API_URL}/api/users");
+			const response = await fetch(`${API_URL}/api/users`);
 			
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);

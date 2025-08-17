@@ -48,7 +48,7 @@ export default function BooksPage() {
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const response = await fetch('${API_URL}/api/books');
+      const response = await fetch(`${API_URL}/api/books`);
       const data = await response.json();
       
       // Ensure data is an array
@@ -88,7 +88,7 @@ export default function BooksPage() {
   // Add new book (Librarian only)
   const handleAddBook = async (bookData) => {
     try {
-      const response = await fetch('${API_URL}/api/books', {
+      const response = await fetch(`${API_URL}/api/books`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ export default function BooksPage() {
 
       console.log('Request body:', requestBody);
       
-      const response = await fetch('${API_URL}/api/loans', {
+      const response = await fetch(`${API_URL}/api/loans`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
